@@ -21,4 +21,15 @@ const auth = async (req, res, next) => {
     }
   }
 };
-module.exports = auth;
+const admin = (req,res,next)=>{
+
+  if(req.user && req.user.isAdmin) {
+    next()
+  } else{
+    return res.status(401).json({
+      message:'You dont have authorization'
+    })
+  }
+}
+module.exports = {auth,admin};
+

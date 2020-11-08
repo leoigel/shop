@@ -41,6 +41,7 @@ exports.getUserProfile = async (req, res) => {
         message: "user is not authorized to see this page",
       });
     }
+    console.log(user)
     res.status(200).json({
       _id: user._id,
       name: user.name,
@@ -84,17 +85,19 @@ exports.createUser = async (req, res) => {
 
 exports.updateUserProfile = async (req, res) => {
   try {
-    const newUser = await User.findByIdAndUpdate(req.user._id, req.body, {
-      new: true,
-      runValidators: true,
-    });
+    const user = await User.findById(req.user._id);
+    user.name = req.body.name || user.name
+    user.email = req.body.email || user.email
+    user.password = req.body.password || user.password
 
+    const updatedUser = await user.save()
+    const token = jwt.sign(user.id, process.env.JWT_SECRET);
     res.json({
-      _id: newUser._id,
-      email: newUser.email,
-      password: newUser.password,
-      name: newUser.name,
-      isAdmin: newUser.isAdmin,
+      _id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      isAdmin: updatedUser.isAdmin,
+      token
     });
   } catch (error) {
     res.status(500).json({
@@ -102,3 +105,66 @@ exports.updateUserProfile = async (req, res) => {
     });
   }
 };
+
+exports.getAllUsers = async (req,res) => {
+  try {
+    const users = await User.find({});
+    res.json(users)
+  }catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+}
+
+exports.deleteUser = (async(req,res) => {
+  try{
+    const user = await User.findById(req.params.id)
+    if(!user) {
+      return res.status(404).json({message:'User not found'})
+    }
+    await user.remove()
+    res.json({ message: 'User removed' })
+  }catch(error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+})
+
+exports.getUserById = (async(req,res) => {
+ try{
+
+  const user = await User.findById(req.params.id).select('-password');
+  if(!user) {
+    return res.status(404).json({message:'User not found'})
+  }
+  res.json(user)
+
+ }catch(error) {
+  res.status(500).json({
+    message: error.message,
+  });
+ }
+})
+
+exports.updateUser = (async(req,res) => {
+  const user = await User.findById(req.params.id)
+  if (user) {
+    user.name = req.body.name || user.name
+    user.email = req.body.email || user.email
+    user.isAdmin = req.body.isAdmin
+
+    const updatedUser = await user.save()
+
+    res.json({
+      _id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      isAdmin: updatedUser.isAdmin,
+    })
+  }else {
+    return  res.status(404).json({message:'User not found'})
+  }
+})
+

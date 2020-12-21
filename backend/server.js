@@ -23,6 +23,7 @@ app.get("/api/config/paypal", (req, res) =>
 // console.log()
 app.use('/uploads', express.static(path.join(__dirname,'/uploads')))
 if (process.env.NODE_ENV === 'production') {
+  console.log(process.env.JWT_SECRET)
   app.use(express.static(path.join(__dirname + '/../frontend/build')));
 
 app.get("*", (req, res) => {

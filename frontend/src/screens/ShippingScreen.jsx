@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Form, Button } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
 import { saveShippingAddress } from '../actions/cartActions';
@@ -9,6 +9,7 @@ const ShippingScreen = ({ history }) => {
   const cart = useSelector((state) => state.cart);
   const dispatch = useDispatch();
   const { shippingAddress } = cart;
+  const [buttonAvalible, setButtonAvalible] = useState(true);
   const [infoAddress, setInfoAddress] = useState({
     address: shippingAddress.address,
     city: shippingAddress.city,
@@ -18,6 +19,13 @@ const ShippingScreen = ({ history }) => {
 
   const { address, city, postalCode, country } = infoAddress;
 
+  useEffect(() => {
+    const isAvailable = [address, city, postalCode, country].every(
+      (itemInfoAddress) => itemInfoAddress
+    );
+    isAvailable ? setButtonAvalible(false) : setButtonAvalible(true);
+  }, [address, city, postalCode, country]);
+
   const submitHandler = (e) => {
     e.preventDefault();
     dispatch(saveShippingAddress({ address, city, postalCode, country }));
@@ -26,7 +34,7 @@ const ShippingScreen = ({ history }) => {
   const handlerInfo = (e) => {
     setInfoAddress({ ...infoAddress, [e.target.name]: e.target.value });
   };
-
+  console.log(infoAddress);
   return (
     <FormContainer>
       <CheckoutSteps step1 step2 />
@@ -72,7 +80,7 @@ const ShippingScreen = ({ history }) => {
             onChange={handlerInfo}
           ></Form.Control>
         </Form.Group>
-        <Button type='submit' variant='primary'>
+        <Button type='submit' variant='primary' disabled={buttonAvalible}>
           Continue
         </Button>
       </Form>
